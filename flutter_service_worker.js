@@ -197,29 +197,10 @@ const CORE = ["main.dart.js",
 "assets/AssetManifest.bin.json",
 "assets/FontManifest.json"];
 
-// Convert absolute paths starting with "/" to relative paths
-// This ensures assets load correctly on Cloudflare Pages
-self.addEventListener('install', function(event) {
+// During install, the TEMP cache is populated with the application shell files.
+self.addEventListener("install", (event) => {
   self.skipWaiting();
-  
-  // Fix path issues that might occur with Cloudflare Pages
-  const baseUrl = self.location.pathname.replace(/\/[^\/]*$/, '/');
-  
-  var resources = {};
-  for (const key in RESOURCES) {
-    // For "/" root path, use "index.html" instead
-    if (key === "/") {
-      resources["index.html"] = RESOURCES[key];
-    } else if (key.startsWith("/")) {
-      // Remove leading slash from paths
-      resources[key.substring(1)] = RESOURCES[key];
-    } else {
-      resources[key] = RESOURCES[key];
-    }
-  }
-  
-  // Use the updated resources
-  event.waitUntil(
+  return event.waitUntil(
     caches.open(TEMP).then((cache) => {
       return cache.addAll(
         CORE.map((value) => new Request(value, {'cache': 'reload'})));
